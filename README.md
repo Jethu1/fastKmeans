@@ -13,8 +13,20 @@
 #5.实现起来不容易，如果觉得有用麻烦点个赞呗。
 
 # 使用方法
- 1.List<List<Integer>> clusterRes = MultiThreadKmeans.run(kmeansData, kmeansData.length*0.7, kmeansData.length * 20,10);
+1.一般的使用方式： List<List> clusterRes = MultiThreadKmeans.run(kmeansData, kmeansData.length*0.7, kmeansData.length * 20,10,2);
 
-2.以文本聚类为例，如果在进行文本向量化是保存了词的非零位置：
-List<List<Integer>>  nouzeroList  = TfIdf.getZeroList(nodeContents); //TFIDF方式进行文本向量化,nodeContents为文本内容
-List<List<Integer>> clusterRes = MultiThreadKmeans.run(kmeansData, kmeansData.length*0.7, kmeansData.length * 20,10,nouzeroList);
+kmeansData: 矩阵
+
+kmeansData.length*0.7 聚类个数
+
+kmeansData.length * 20：最大迭代次数
+
+10：开启线程数目
+
+2：使用哪一种选种算法；1：随机选种 2：Kmean++选种  3: AFK-MC2选种
+
+ 
+
+2.以文本聚类为例，如果在进行文本向量化是保存了词的非零位置： List<List> nouzeroList = TfIdf.getZeroList(nodeContents); //TFIDF方式进行文本向量化,nodeContents为文本内容
+
+List<List> clusterRes = MultiThreadKmeans.run(kmeansData, kmeansData.length*0.7, kmeansData.length * 20,10,nouzeroList，2);
