@@ -19,14 +19,15 @@ public class MultiThreadKmeans {
      * @param clusterNum 聚类类别数
      * @param maxiteration 最大迭代次数
      * @param threadNum 线程数
+     * @param initNum 根据initNum的大小确定选择哪一个初始选种算法  1：随机选种  2：Kmean++选种  3: AFK-MC2选种
      * @return  聚类结果
      */
     public static List<List<Integer>> run(
-            double[][] vectors,int clusterNum,int maxiteration,int threadNum) {
+            double[][] vectors,int clusterNum,int maxiteration,int threadNum,int initNum) {
 
         List<List<Integer>> lists = new ArrayList<>();
         ConcurrentKMeans concurrentKMeans = new ConcurrentKMeans(
-                vectors,clusterNum,maxiteration,10,threadNum);
+                vectors,clusterNum,maxiteration,10,threadNum,initNum);
         concurrentKMeans.run();
         Cluster[] clusters = concurrentKMeans.getClusters();
         for (Cluster cluster : clusters) {
@@ -46,14 +47,15 @@ public class MultiThreadKmeans {
      * @param maxiteration 最大迭代次数
      * @param threadNum 线程数
      * @param nouZeroList 文本向量中非0位置序号
+     * @param initNum 根据initNum的大小确定选择哪一个初始选种算法  1：随机选种  2：Kmean++选种  3: AFK-MC2选种
      * @return 聚类结果
      */
     public static List<List<Integer>> run(double[][] vectors, int clusterNum,
-                              int maxiteration, int threadNum,List<List<Integer>> nouZeroList) {
+                              int maxiteration, int threadNum,List<List<Integer>> nouZeroList,int initNum) {
 
         List<List<Integer>> lists = new ArrayList<>();
         ConcurrentKMeans concurrentKMeans = new ConcurrentKMeans(
-                vectors,clusterNum,maxiteration,10,threadNum,nouZeroList);
+                vectors,clusterNum,maxiteration,10,threadNum,nouZeroList,initNum);
         concurrentKMeans.run();
         Cluster[] clusters = concurrentKMeans.getClusters();
         for (Cluster cluster : clusters) {

@@ -60,62 +60,43 @@ public class ConcurrentKMeans implements KMeans {
     //存放距离数组
     private Map<Integer,int[]> distanceMap;
 
+    //根据initNum的大小确定选择哪一个初始选种算法  1：随机选种  2：Kmean++选种  3: AFK-MC2选种
+    private int initNum = 1;
+
     /**
-     * Constructor
+     * 普通的构造方法
      *
      * @param coordinates two-dimensional array containing the coordinates to be clustered.
      * @param k  the number of desired clusters.
      * @param maxIterations the maximum number of clustering iterations.
      * @param randomSeed seed used with the random number generator.
      * @param threadCount the number of threads to be used for computing time-consuming steps.
-     * @param total 最大簇数量上限 
+     * @param initNum 初始选种
      */
     public ConcurrentKMeans(double[][] coordinates, int k, int maxIterations,
-                            long randomSeed, int threadCount,int total) {
+                            long randomSeed, int threadCount,int initNum) {
         mcoordinates = coordinates;
         // Can't have more clusters than coordinates.
         mk = Math.min(k, mcoordinates.length);
         mmaxIterations = maxIterations;
         mrandomSeed = randomSeed;
         mthreadCount = threadCount;
-        maxCluster = 20 + (int)(((double)total / 70000) * 30);
-        //maxCluster = 30;
-    }
-
-    /**
-     * Constructor
-     *
-     * @param coordinates two-dimensional array containing the coordinates to be clustered.
-     * @param k  the number of desired clusters.
-     * @param maxIterations the maximum number of clustering iterations.
-     * @param randomSeed seed used with the random number generator.
-     * @param threadCount the number of threads to be used for computing time-consuming steps.
-     */
-    public ConcurrentKMeans(double[][] coordinates, int k, int maxIterations,
-                            long randomSeed, int threadCount) {
-        mcoordinates = coordinates;
-        // Can't have more clusters than coordinates.
-        mk = Math.min(k, mcoordinates.length);
-        mmaxIterations = maxIterations;
-        mrandomSeed = randomSeed;
-        mthreadCount = threadCount;
-
+        this.initNum = initNum;
         distanceMap = new Hashtable<>(mcoordinates.length);
     }
 
     /**
-     * Constructor that uses the return from
-     * <tt>Runtime.getRuntime().availableProcessors()</tt> as the number
-     * of threads for time-consuming steps.
+     *  使用nouList保存每个向量的非零位置，加速距离计算
      *  @param coordinates two-dimensional array containing the coordinates to be clustered.
      * @param k  the number of desired clusters.
      * @param maxIterations the maximum number of clustering iterations.
      * @param randomSeed seed used with the random number generator.
-     * @param mThread 矩阵非零位置
+     * @param mThread 线程数
      * @param nouList 矩阵非零位置
+     * @param initNum 初始选种
      */
     public ConcurrentKMeans(double[][] coordinates, int k, int maxIterations,
-                            long randomSeed,int mThread, List<List<Integer>> nouList) {
+                            long randomSeed,int mThread, List<List<Integer>> nouList,int initNum) {
         mcoordinates = coordinates;
         // Can't have more clusters than coordinates.
         mk = Math.min(k, mcoordinates.length);
@@ -124,6 +105,7 @@ public class ConcurrentKMeans implements KMeans {
         mthreadCount = mThread;
         nouZeroList = nouList;
         distanceMap = new Hashtable<>(mcoordinates.length);
+        this.initNum = initNum;
     }
 
     /**
@@ -222,7 +204,7 @@ public class ConcurrentKMeans implements KMeans {
 
             postKMeansMessage("K-Means clustering started");
 
-            //AFKMC选择初始聚类算法---  最大化初始节点距离
+
             long t1 = System.currentTimeMillis();
             // Randomly initialize the cluster centers creating the
             // array mprotoClusters.
@@ -235,10 +217,13 @@ public class ConcurrentKMeans implements KMeans {
                     // Initialize to -1 to indicate that they haven't been assigned yet.
                     Arrays.fill(mclusterAssignments, -1);
                 }
-                initKMeansPlusPlusCenters();
-                //initDistanceCenters();   //71
-                //initCenters();  // 31
-                //initAFKMCCenters();
+                if (initNum == 1) {
+                    initCenters();  //随机初始化中心
+                } else if (initNum == 2) {
+                    initKMeansPlusPlusCenters(); //最大化初始节点距离Kmeans++
+                } else {
+                    initAFKMCCenters();  //AFKMC选择初始聚类算法---
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -575,47 +560,6 @@ public class ConcurrentKMeans implements KMeans {
         }
 
         return -1;
-    }
-
-
-    /**
-     * select max distance coordinates to be the initial cluster centers. JetHu java实现
-     */
-    private void initDistanceCenters() {
-
-        Random random = new Random(mrandomSeed);
-        mprotoClusters = new ProtoCluster[mk];
-        int coordCount = mcoordinates.length;
-        int index1 = random.nextInt(coordCount);
-        double[] c1 = mcoordinates[index1];
-
-        // The array mclusterAssignments is used only to keep track of the cluster
-        // membership for each coordinate.  The method makeAssignments() uses it
-        // to keep track of the number of moves.
-        if (mclusterAssignments == null) {
-            mclusterAssignments = new int[coordCount];
-            // Initialize to -1 to indicate that they haven't been assigned yet.
-            Arrays.fill(mclusterAssignments, -1);
-        }
-        //mprotoClusters[index1] = new ProtoCluster(c1, index1);
-        //mclusterAssignments[index1] = 0;
-
-        //每一个距离数组
-        double[] dis = new double[coordCount];
-        int[] index = new int[coordCount];
-
-        for (int i = 0; i < coordCount; i++) {
-            index[i] = i;
-            dis[i] = distance(mcoordinates[i],c1);
-        }
-        //QuickSort.quickSort(dis,0,coordCount - 1,index);
-
-        //
-        int num = mcoordinates.length / mk;
-        for (int i = 0; i < mk; i++) {
-            mprotoClusters[i] = new ProtoCluster(mcoordinates[index[i * num]], index[i * num]);
-            mclusterAssignments[index[i * num]] = i;
-        }
     }
 
     /**
