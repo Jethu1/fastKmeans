@@ -1,0 +1,48 @@
+/target/
+!.mvn/wrapper/maven-wrapper.jar
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+log
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/build/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+
+
+# ignore idea project file
+
+*.log
+
+*.idea
+
+# ignore eclipse project file
+.metadata
+.recommenders
+.jar
+
+# ignore hidden file on MacOS
+.DS_Store
+
+target
+release
+log/
+src/test/java/com/pachira/nlp/SegmentWordResultDaoImplTest.java
+src/test/java/com/pachira/nlp/context/util/Test.java
