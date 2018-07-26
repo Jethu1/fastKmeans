@@ -61,7 +61,7 @@ public class ConcurrentKMeans implements KMeans {
     private Map<Integer,int[]> distanceMap;
 
     //根据initNum的大小确定选择哪一个初始选种算法  1：随机选种  2：Kmean++选种  3: AFK-MC2选种
-    private int initNum = 1;
+    private int initNum = 2;
 
     /**
      * 普通的构造方法
@@ -221,7 +221,7 @@ public class ConcurrentKMeans implements KMeans {
                     initCenters();  //随机初始化中心
                 } else if (initNum == 2) {
                     initKMeansPlusPlusCenters(); //最大化初始节点距离Kmeans++
-                } else {
+                } else if (initNum == 3) {
                     initAFKMCCenters();  //AFKMC选择初始聚类算法---
                 }
             } catch (Exception e) {
